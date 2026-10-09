@@ -15,11 +15,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RolePermissionSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
+
+        $testUsers = [
+            ['name' => 'Test Admin', 'email' => 'admin@example.com', 'role' => 'admin'],
+            ['name' => 'Test Agent', 'email' => 'agent@example.com', 'role' => 'agent'],
+            ['name' => 'Test User', 'email' => 'test@example.com', 'role' => 'user'],
+        ];
+
+        foreach ($testUsers as $testUser) {
+            $user = User::firstOrCreate(
+                ['email' => $testUser['email']],
+                [
+                    'name' => $testUser['name'],
+                    'password' => 'password',
+                ],
+            );
+
+            $user->syncRoles($testUser['role']);
+        }
     }
 }
